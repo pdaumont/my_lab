@@ -12,6 +12,7 @@
 
 #include "../includes/lemin.h"
 
+
 static int		read_line(int fd, char **line, char **backup)
 {
 	char		buffer[BUFF_SIZE + 1];

@@ -1,10 +1,11 @@
-NAME = lemin
+NAME = lem-in
 
-SRCS = ./src/lemin_acquisition.c ./src/lemin_main.c ./src/get_next_line.c ./src/lemin_traitement.c
+SRCS = ./src/lemin_acquisition.c ./src/lemin_main.c ./src/get_next_line.c ./src/lemin_traitement.c\
+./src/lemin_matrice.c ./src/lemin_print.c
 
 INCLUDES = ./includes
 FLAGS = -Wall -Wextra -Werror
-OBJS = ./lemin_acquisition.o ./lemin_main.o ./get_next_line.o ./lemin_traitement.o
+OBJS = ./lemin_acquisition.o ./lemin_main.o ./get_next_line.o ./lemin_traitement.o ./lemin_matrice.o ./lemin_print.o
 
 
 all : $(NAME)

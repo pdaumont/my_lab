@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "../includes/lemin.h"
 
+//gerer les fuites
 int main()
 {
   t_home  fourmilliere;

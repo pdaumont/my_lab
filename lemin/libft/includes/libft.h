@@ -31,6 +31,13 @@ typedef struct		s_list
 	int				end;
 }					t_list;
 
+typedef	struct s_chemins
+{
+	int			*content;
+	struct 		s_chemins	*next;
+	size_t		content_size;
+}				t_chemins;
+
 typedef struct node
 {
 	unsigned int key;
@@ -96,6 +103,7 @@ char				**ft_strsplit(char const *s, char c);
 char				*ft_itoa(int i);
 int					ft_strpos(const char *str, int c);
 void				ft_lstadd(t_list **alst, t_list *element);
+void				ft_lstaddchemins(t_chemins **alst, t_chemins *element);
 void				ft_lstaddqueue(t_list **alst, t_list *element);
 void				ft_lstdel(t_list **alst, void (*del)(void *, size_t));
 void				ft_lstdelone(t_list **alst, void (*del)(void *, size_t));
@@ -105,6 +113,7 @@ t_list				*ft_lstlast(t_list *alst);
 size_t				ft_lstlen(t_list *lst);
 t_list				*ft_lstmap(t_list *lst, t_list *(*f)(t_list *elem));
 t_list				*ft_lstnew(char *content, size_t content_size);
+t_chemins				*ft_lstnewchemins(int *content, size_t content_size);
 t_list				*ft_lstprevious(t_list *head, t_list *srch);
 int					ft_lstswap(t_list **head, t_list **node1, t_list **node2);
 void				ft_lstrevert(t_list **lst);

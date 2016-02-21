@@ -54,7 +54,7 @@ int is_nb_fourmis(t_home *fourmi, char **ligne)
   if (is_allnumber(*(ligne)) == -1)
     return(-1);
   fourmi->nb_fourmis = ft_atoi((const char*)(*(ligne)));
-  printf("nombre fourmis == %d\n", fourmi->nb_fourmis);
+  //printf("nombre fourmis == %d\n", fourmi->nb_fourmis);
   return(0);
 }
 
@@ -63,21 +63,25 @@ int construction_arc(char *ligne, t_list **liste_salles)
   t_list *temp;
   char **arc_data;
 
+  //printf("in construction_arc\n");
   temp = *(liste_salles);
   arc_data = ft_strsplit(ligne,'-');
   while (temp)
   {
     if (ft_strcmp(arc_data[0], temp->content) == 0)
       {
+        //printf("1.1\n");
         if (is_alreadycreated(arc_data[1], liste_salles) == 0)
         {
           ft_putstr("arc: salle d'arrivée invalide\n");
           return (-1);
         }
+      //  printf("1.2\n");
         if (temp->arcs)
             temp->arcs = ft_strjoin(temp->arcs, ft_strjoin(",",arc_data[1]));
         else
           temp->arcs = arc_data[1];
+        //printf("%s\n", temp->arcs);
         return (0);
       }
     temp = temp->next;
@@ -91,6 +95,7 @@ int construction_salle(char *ligne, t_list **liste_salles)
   char **new_salle;
   int   nb;
 
+  //printf("in construction_salle\n");
   if (!ligne)
   {
     ft_putstr("salle: ligne vide");
@@ -111,62 +116,85 @@ int construction_salle(char *ligne, t_list **liste_salles)
   (*(liste_salles))->num = nb;
   (*(liste_salles))->x = ft_atoi(new_salle[1]);
   (*(liste_salles))->y = ft_atoi(new_salle[2]);
+  //printf("out construction_salle\n");
   return (0);
 }
 
-int is_correct(char *ligne)
+int is_comment(char *ligne)
+{
+  if (ft_strcmp("##start", (const char*)ligne) == 0)
+    return (3);
+  if (ft_strcmp("##end", (const char*)ligne) == 0)
+    return (4);
+  else
+    return (0);
+}
+
+int is_arc_or_salle(char *ligne)
 {
   char **salle;
   char **arc;
 
-  if (!ligne)
-    return (-1);
-  if ('#' == ligne[0])
+  salle = ft_strsplit(ligne, ' ');
+  if (salle[1] && salle[2])
   {
-    if (ft_strcmp("##start", (const char*)ligne) == 0)
-      return (3);
-    if (ft_strcmp("##end", (const char*)ligne) == 0)
-      return (4);
-    else
-      return (0);
-  }
-  else
+    if (is_allnumber(salle[1]) == 0 && is_allnumber(salle[2]) == 0 && !salle[3])
     {
-      salle = ft_strsplit(ligne, ' ');
-      if (is_allnumber(salle[1]) == 0 && is_allnumber(salle[2]) == 0 && !salle[3])
-      {
-        free (salle);
-        return (1);
-      }
-      arc = ft_strsplit(ligne, '-');
-      if (arc[0] && arc[1] && !arc[2])
-      {
-        free (arc);
-        return (2);
-      }
-      return (-1);
+      free (salle);
+      return (1);
     }
+  }
+  arc = ft_strsplit(ligne, '-');
+  if (arc[0] && arc[1] && !arc[2])
+  {
+  //  printf("in arc or salle\n");
+    free (arc);
+    return (2);
+  }
+  return (-1);
 }
 
-int acquisition(t_home *fourmi)
+int is_correct(char *ligne)
 {
-  char *ligne;
-  int set_start;
-  int set_end;
-  t_list *liste_salles;
+//  printf("in is correct\n");
+  //printf("%s\n", ligne);
 
-ligne = NULL;
-liste_salles = NULL;
-set_start = 0;
-set_end = 0;
-if (is_nb_fourmis(fourmi, &ligne) == -1)
+  if (!ligne)
   {
-    ft_putstr("première ligne invalide\n");
+    ft_putstr("acquisition :ligne vide\n");
     return (-1);
   }
-  while (get_next_line(0, &ligne))
+  if ('#' == ligne[0])
+    return (is_comment(ligne));
+  else
+    return(is_arc_or_salle(ligne));
+}
+
+void initialisation_variables(char **ligne, t_list **liste_salles,
+   int *set_start, int *set_end)
+{
+  *ligne = NULL;
+  *liste_salles = NULL;
+  *set_start = 0;
+  *set_end = 0;
+}
+
+int verification_nombre_fourmis(t_home *fourmi,char *ligne)
+{
+  if (is_nb_fourmis(fourmi, &ligne) == -1)
+    {
+      ft_putstr("première ligne invalide\n");
+      return (-1);
+    }
+    return (0);
+}
+
+int lecture_ligne(char *ligne, t_list **liste_salles,
+   int set_start, int set_end)
+{
+  while (get_next_line(0, &ligne) == 1)
   {
-    printf("return is correct == %d\n", is_correct(ligne));
+//    printf("type = %d\n", is_correct(ligne));
     switch (is_correct(ligne))
     {
       case -1:
@@ -174,21 +202,22 @@ if (is_nb_fourmis(fourmi, &ligne) == -1)
       case 0:
         break;
       case 1:
-          if (construction_salle(ligne, &liste_salles) == -1)
+          if (construction_salle(ligne, liste_salles) == -1)
             return (-1);
           break;
       case 2:
-        if (construction_arc(ligne, &liste_salles) == -1)
-          return (-1);
-        break;
+          if (construction_arc(ligne, liste_salles) == -1)
+            return (-1);
+//          printf("out\n");
+          break;
       case 3:
         if (set_start == 0)
           {
             if (get_next_line(0, &ligne) == -1 && is_correct(ligne) != 1)
               return (-1);
             set_start = 1;
-            construction_salle(ligne, &liste_salles);
-            liste_salles->start = 1;
+            construction_salle(ligne, liste_salles);
+            (*liste_salles)->start = 1;
             break;
           }
         else
@@ -199,16 +228,30 @@ if (is_nb_fourmis(fourmi, &ligne) == -1)
           if (get_next_line(0, &ligne) == -1 || is_correct(ligne) != 1)
             return (-1);
           set_end = 1;
-          printf("is correct: %d\n", is_correct(ligne));
-          construction_salle(ligne, &liste_salles);
-          liste_salles->end = 1;
+          construction_salle(ligne, liste_salles);
+          (*liste_salles)->end = 1;
           break;
         }
         else
           return (-1);
     }
   }
-  ft_putlstsalle(&liste_salles);
-  *fourmi->liste_salles = liste_salles;
   return (0);
+}
+
+int acquisition(t_home *fourmi)
+{
+  char *ligne;
+  int set_start;
+  int set_end;
+  t_list *liste_salles;
+
+initialisation_variables(&ligne, &liste_salles, &set_start, &set_end);
+if (verification_nombre_fourmis(fourmi, ligne) == -1)
+  return (-1);
+if (lecture_ligne(ligne, &liste_salles, set_start, set_end) == -1)
+  return (-1);
+//ft_putlstsalle(&liste_salles);
+(fourmi)->liste_salles = liste_salles;
+return (0);
 }
